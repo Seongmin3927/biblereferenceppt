@@ -65,39 +65,39 @@ const SAMPLE_BIBLE = {
 };
 
 // ==================================================
-// 테마 설정 (프리미엄 슬라이드 스타일)
+// 테마 설정 (경건하고 밝은 프리미엄 교회 스타일)
 // ==================================================
 const THEMES = [
   {
-    id: "dark-purple",
-    name: "미드나잇 퍼플 (기본)",
-    className: "theme-dark",
-    bgColor: "1e1a33",
-    gradientColors: ["#1a1035", "#0f0c1a"],
-    fontColor: "E2D9F7",
-    accentColor: "F59E0B",
+    id: "classic-alabaster",
+    name: "클래식 앨러배스터 (기본)",
+    className: "theme-alabaster",
+    bgColor: "F6F5F0",
+    gradientColors: ["#F6F5F0", "#FFFFFF"],
+    fontColor: "4A3E3D",
+    accentColor: "C29D5D",
     fontSize: 28,
     fontFamily: "Noto Serif KR"
   },
   {
-    id: "deep-blue",
-    name: "딥 오션 블루",
-    className: "theme-blue",
-    bgColor: "0f2044",
-    gradientColors: ["#0f2044", "#1a3a6e"],
-    fontColor: "BFDBFE",
-    accentColor: "38BDF8",
+    id: "olive-garden",
+    name: "평온한 올리브 가든",
+    className: "theme-olive",
+    bgColor: "EAECE6",
+    gradientColors: ["#EAECE6", "#F2F4F0"],
+    fontColor: "2F3E32",
+    accentColor: "8B7355",
     fontSize: 28,
     fontFamily: "Noto Sans KR"
   },
   {
-    id: "warm-gold",
-    name: "클래식 워머 골드",
-    className: "theme-gold",
-    bgColor: "2d1b00",
-    gradientColors: ["#2d1b00", "#4a2d00"],
-    fontColor: "FDE68A",
-    accentColor: "F59E0B",
+    id: "morning-light",
+    name: "새벽 하늘 블루",
+    className: "theme-morning",
+    bgColor: "E6EEF4",
+    gradientColors: ["#E6EEF4", "#F0F5FA"],
+    fontColor: "2A3E4E",
+    accentColor: "B8860B",
     fontSize: 28,
     fontFamily: "Noto Serif KR"
   }
