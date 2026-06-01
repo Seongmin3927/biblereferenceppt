@@ -374,12 +374,60 @@ function App() {
           let slideXml = baseSlideXml;
 
           // XML 내부의 플레이스홀더 문자열 치환
-          // 윈도우 한글 PPT 특성상 XML 태그가 텍스트 사이사이에 쪼개져 있을 수 있으므로 대소문자 무관(i) 전역(g) 정규식 사용
-          slideXml = slideXml
-            .replace(/\(BOOK\)/gi, item.book)
-            .replace(/\(CHAPTER\)/gi, `${item.chapter}${chapterSuffix}`)
-            .replace(/\(VERSE\)/gi, `${item.verse}절`)
-            .replace(/\(CONTENT\)/gi, item.content);
+          // 윈도우 한글 PPT 특성상 XML 태그가 "(V", "ERSE", ")" 처럼 쪼개져 있는 문제를 해결하기 위해 DOMParser 활용
+          try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(slideXml, "application/xml");
+            
+            // 모든 텍스트 단락 <a:p> 탐색
+            const paragraphs = xmlDoc.getElementsByTagName("a:p");
+            
+            for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
+              const p = paragraphs[pIdx];
+              const tElements = p.getElementsByTagName("a:t");
+              if (tElements.length === 0) continue;
+              
+              // 단락 내부의 모든 조각화된 텍스트 병합
+              let paragraphText = "";
+              for (let tIdx = 0; tIdx < tElements.length; tIdx++) {
+                paragraphText += tElements[tIdx].textContent;
+              }
+              
+              // 하나라도 플레이스홀더가 포함되어 있는지 체크
+              const hasBook = /\(BOOK\)/gi.test(paragraphText);
+              const hasChapter = /\(CHAPTER\)/gi.test(paragraphText);
+              const hasVerse = /\(VERSE\)/gi.test(paragraphText);
+              const hasContent = /\(CONTENT\)/gi.test(paragraphText);
+              
+              if (hasBook || hasChapter || hasVerse || hasContent) {
+                // 단락 내 텍스트 치환
+                let replacedText = paragraphText;
+                replacedText = replacedText.replace(/\(BOOK\)/gi, item.book);
+                replacedText = replacedText.replace(/\(CHAPTER\)/gi, `${item.chapter}${chapterSuffix}`);
+                replacedText = replacedText.replace(/\(VERSE\)/gi, `${item.verse}절`);
+                replacedText = replacedText.replace(/\(CONTENT\)/gi, item.content);
+                
+                // 첫 번째 텍스트 노드에 치환된 전체 문장을 할당하고, 나머지 텍스트 노드는 비워서 중복을 없앰
+                tElements[0].textContent = replacedText;
+                for (let tIdx = 1; tIdx < tElements.length; tIdx++) {
+                  tElements[tIdx].textContent = "";
+                }
+              }
+            }
+            
+            // XML 객체를 문자열로 다시 변환
+            const serializer = new XMLSerializer();
+            slideXml = serializer.serializeToString(xmlDoc);
+          } catch (domErr) {
+            console.error("DOMParser XML 치환 에러, 기본 RegExp 폴백 적용:", domErr);
+            // DOMParser 실패 시 예비용 RegExp 직접 대입 적용
+            slideXml = slideXml
+              .replace(/\(BOOK\)/gi, item.book)
+              .replace(/\(CHAPTER\)/gi, `${item.chapter}${chapterSuffix}`)
+              .replace(/\(VERSE\)/gi, `${item.verse}절`)
+              .replace(/\(CONTENT\)/gi, item.content);
+          }
+
 
 
           // ZIP 파일 내에 개별 슬라이드 파일 생성
