@@ -374,12 +374,13 @@ function App() {
           let slideXml = baseSlideXml;
 
           // XML 내부의 플레이스홀더 문자열 치환
-          // 윈도우 한글 PPT 특성상 XML 태그가 텍스트 사이사이에 쪼개져 있을 수 있으므로 단순 텍스트 치환과 정규식 양용
+          // 윈도우 한글 PPT 특성상 XML 태그가 텍스트 사이사이에 쪼개져 있을 수 있으므로 대소문자 무관(i) 전역(g) 정규식 사용
           slideXml = slideXml
-            .replace(/\(BOOK\)/g, item.book)
-            .replace(/\(CHAPTER\)/g, `${item.chapter}${chapterSuffix}`)
-            .replace(/\(VERSE\)/g, `${item.verse}절`)
-            .replace(/\(CONTENT\)/g, item.content);
+            .replace(/\(BOOK\)/gi, item.book)
+            .replace(/\(CHAPTER\)/gi, `${item.chapter}${chapterSuffix}`)
+            .replace(/\(VERSE\)/gi, `${item.verse}절`)
+            .replace(/\(CONTENT\)/gi, item.content);
+
 
           // ZIP 파일 내에 개별 슬라이드 파일 생성
           zip.file(`ppt/slides/slide${slideIndex}.xml`, slideXml);
