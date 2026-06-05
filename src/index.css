@@ -1165,3 +1165,112 @@ input[type="text"]:focus {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ===========================
+   Contact Form & Disqus Styling
+   =========================== */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.contact-form-card {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(163, 145, 119, 0.03);
+}
+
+.form-card-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(194, 157, 93, 0.15);
+  padding-bottom: 12px;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contact-form input[type="text"],
+.contact-form input[type="email"] {
+  background: var(--bg-card);
+}
+
+.form-select {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23705B45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.form-select:focus {
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(194, 157, 93, 0.08);
+}
+
+.contact-form textarea {
+  width: 100%;
+  padding: 13px 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-input);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.25s ease;
+  resize: vertical;
+}
+
+.contact-form textarea:focus {
+  border-color: var(--border-active);
+  box-shadow: 0 0 0 3px rgba(194, 157, 93, 0.08);
+}
+
+.btn-submit {
+  margin-top: 8px;
+}
+
+.comments-card {
+  margin-top: 32px;
+}
+
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .contact-form-card {
+    padding: 24px;
+  }
+}
