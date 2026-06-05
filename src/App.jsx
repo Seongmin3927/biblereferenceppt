@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import pptxgen from "pptxgenjs";
 import JSZip from "jszip";
+import {
+  ABOUT_CONTENT,
+  DESIGN_GUIDE,
+  PRIVACY_POLICY,
+  TERMS_OF_SERVICE,
+  CONTACT_CONTENT,
+  FAQ_CONTENT
+} from "./pagesData";
 
 
 // ==================================================
@@ -103,6 +111,90 @@ const THEMES = [
   }
 ];
 
+// ==================================================
+// 네비게이션 페이지 상수
+// ==================================================
+const PAGES = {
+  HOME: "home",
+  ABOUT: "about",
+  GUIDE: "guide",
+  FAQ: "faq",
+  PRIVACY: "privacy",
+  TERMS: "terms",
+  CONTACT: "contact"
+};
+
+// ==================================================
+// 정보 페이지 컴포넌트 (공통 레이아웃)
+// ==================================================
+function InfoPage({ data, onBack }) {
+  return (
+    <article className="info-page">
+      <button className="info-back-btn" onClick={onBack} aria-label="메인 페이지로 돌아가기">
+        ← 메인으로 돌아가기
+      </button>
+      <header className="info-page-header">
+        <h1>{data.title}</h1>
+        {data.subtitle && <p className="info-subtitle">{data.subtitle}</p>}
+        {data.lastUpdated && <p className="info-updated">최종 수정일: {data.lastUpdated}</p>}
+      </header>
+      <div className="info-page-body">
+        {data.sections.map((section, idx) => (
+          <section key={idx} className="info-section">
+            <h2>{section.heading}</h2>
+            <div className="info-text">
+              {section.body.split("\n").map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+// ==================================================
+// FAQ 페이지 컴포넌트
+// ==================================================
+function FAQPage({ data, onBack }) {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  return (
+    <article className="info-page">
+      <button className="info-back-btn" onClick={onBack} aria-label="메인 페이지로 돌아가기">
+        ← 메인으로 돌아가기
+      </button>
+      <header className="info-page-header">
+        <h1>{data.title}</h1>
+        {data.subtitle && <p className="info-subtitle">{data.subtitle}</p>}
+      </header>
+      <div className="info-page-body">
+        {data.items.map((item, idx) => (
+          <div key={idx} className={`faq-item ${openIndex === idx ? "faq-open" : ""}`}>
+            <button
+              className="faq-question"
+              onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
+              aria-expanded={openIndex === idx}
+            >
+              <span className="faq-q-icon">Q</span>
+              <span className="faq-q-text">{item.question}</span>
+              <span className="faq-arrow">{openIndex === idx ? "▲" : "▼"}</span>
+            </button>
+            {openIndex === idx && (
+              <div className="faq-answer">
+                <span className="faq-a-icon">A</span>
+                <p>{item.answer}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+
 function App() {
   const [bible, setBible] = useState(SAMPLE_BIBLE);
   const [userInput, setUserInput] = useState("시 23:1-6, 요 3:16");
@@ -112,6 +204,7 @@ function App() {
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [previewList, setPreviewList] = useState([]);
   const [toasts, setToasts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(PAGES.HOME);
   
   // PPT 템플릿 파일 상태
   const [templateFile, setTemplateFile] = useState(null);
@@ -127,9 +220,15 @@ function App() {
     }, 4000);
   };
 
+  // 페이지 전환 시 스크롤 맨 위로
+  const navigateTo = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // 컴포넌트 마운트 시 public/bible_full.txt 자동 로드
   useEffect(() => {
-    fetch("/bible_full.txt")
+    fetch("./bible_full.txt")
       .then((res) => {
         if (!res.ok) throw new Error("기본 성경 파일을 찾을 수 없습니다.");
         return res.text();
@@ -453,10 +552,9 @@ function App() {
         // [Content_Types].xml에 신규 슬라이드 오버라이드 등록
         contentTypesXml = contentTypesXml.replace(/<\/Types>/, `${contentTypesOverrides}</Types>`);
 
-        // 첫 번째 슬라이드(원본 템플릿 슬라이드)를 화면에서 제거 (파이썬의 sldIdLst.remove(list(sldIdLst)[0]) 로직 구현)
+        // 첫 번째 슬라이드(원본 템플릿 슬라이드)를 화면에서 제거
         if (previewList.length > 0) {
           presentationXml = presentationXml.replace(/<p:sldIdLst>([\s\S]*?)<\/p:sldIdLst>/, (match, inner) => {
-            // 첫 번째 <p:sldId .../> 태그 하나만 제거하여 템플릿 슬라이드 미출력 처리
             return `<p:sldIdLst>${inner.replace(/<p:sldId[^>]*?\/>/, "")}</p:sldIdLst>`;
           });
         }
@@ -536,9 +634,89 @@ function App() {
     }
   };
 
+  // ==================================================
+  // 정보 페이지 렌더링 분기
+  // ==================================================
+  if (currentPage === PAGES.ABOUT) {
+    return (
+      <div className="app">
+        <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+        <main className="page-container">
+          <InfoPage data={ABOUT_CONTENT} onBack={() => navigateTo(PAGES.HOME)} />
+        </main>
+        <SiteFooter navigateTo={navigateTo} />
+      </div>
+    );
+  }
 
+  if (currentPage === PAGES.GUIDE) {
+    return (
+      <div className="app">
+        <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+        <main className="page-container">
+          <InfoPage data={DESIGN_GUIDE} onBack={() => navigateTo(PAGES.HOME)} />
+        </main>
+        <SiteFooter navigateTo={navigateTo} />
+      </div>
+    );
+  }
+
+  if (currentPage === PAGES.FAQ) {
+    return (
+      <div className="app">
+        <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+        <main className="page-container">
+          <FAQPage data={FAQ_CONTENT} onBack={() => navigateTo(PAGES.HOME)} />
+        </main>
+        <SiteFooter navigateTo={navigateTo} />
+      </div>
+    );
+  }
+
+  if (currentPage === PAGES.PRIVACY) {
+    return (
+      <div className="app">
+        <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+        <main className="page-container">
+          <InfoPage data={PRIVACY_POLICY} onBack={() => navigateTo(PAGES.HOME)} />
+        </main>
+        <SiteFooter navigateTo={navigateTo} />
+      </div>
+    );
+  }
+
+  if (currentPage === PAGES.TERMS) {
+    return (
+      <div className="app">
+        <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+        <main className="page-container">
+          <InfoPage data={TERMS_OF_SERVICE} onBack={() => navigateTo(PAGES.HOME)} />
+        </main>
+        <SiteFooter navigateTo={navigateTo} />
+      </div>
+    );
+  }
+
+  if (currentPage === PAGES.CONTACT) {
+    return (
+      <div className="app">
+        <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+        <main className="page-container">
+          <InfoPage data={CONTACT_CONTENT} onBack={() => navigateTo(PAGES.HOME)} />
+        </main>
+        <SiteFooter navigateTo={navigateTo} />
+      </div>
+    );
+  }
+
+
+  // ==================================================
+  // HOME 페이지 (기존 기능)
+  // ==================================================
   return (
     <div className="app">
+      <NavBar currentPage={currentPage} navigateTo={navigateTo} />
+
       <header className="header">
         <div className="header-icon">📖</div>
         <h1>성경 PPT 생성기</h1>
@@ -730,9 +908,7 @@ function App() {
         </button>
       </main>
 
-      <footer className="footer">
-        © {new Date().getFullYear()} 성경 PPT 생성기. All rights reserved.
-      </footer>
+      <SiteFooter navigateTo={navigateTo} />
 
       {/* 토스트 컨테이너 */}
       <div className="toast-container">
@@ -747,5 +923,123 @@ function App() {
     </div>
   );
 }
+
+
+// ==================================================
+// 네비게이션 바 컴포넌트
+// ==================================================
+function NavBar({ currentPage, navigateTo }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { key: PAGES.HOME, label: "홈", icon: "🏠" },
+    { key: PAGES.ABOUT, label: "소개", icon: "ℹ️" },
+    { key: PAGES.GUIDE, label: "디자인 가이드", icon: "🎨" },
+    { key: PAGES.FAQ, label: "FAQ", icon: "❓" },
+    { key: PAGES.CONTACT, label: "문의", icon: "✉️" },
+  ];
+
+  return (
+    <nav className="site-nav" role="navigation" aria-label="메인 네비게이션">
+      <div className="nav-inner">
+        <button 
+          className="nav-logo" 
+          onClick={() => navigateTo(PAGES.HOME)}
+          aria-label="메인 페이지"
+        >
+          <span className="nav-logo-icon">📖</span>
+          <span className="nav-logo-text">성경 PPT 생성기</span>
+        </button>
+
+        {/* 데스크탑 메뉴 */}
+        <ul className="nav-links" role="menubar">
+          {navItems.map((item) => (
+            <li key={item.key} role="none">
+              <button
+                role="menuitem"
+                className={`nav-link ${currentPage === item.key ? "nav-link-active" : ""}`}
+                onClick={() => navigateTo(item.key)}
+              >
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {/* 모바일 햄버거 버튼 */}
+        <button
+          className="nav-mobile-toggle"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="메뉴 열기/닫기"
+          aria-expanded={mobileMenuOpen}
+        >
+          <span className={`hamburger ${mobileMenuOpen ? "hamburger-open" : ""}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+      </div>
+
+      {/* 모바일 메뉴 */}
+      {mobileMenuOpen && (
+        <div className="nav-mobile-menu">
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              className={`nav-mobile-link ${currentPage === item.key ? "nav-mobile-link-active" : ""}`}
+              onClick={() => { navigateTo(item.key); setMobileMenuOpen(false); }}
+            >
+              <span className="nav-mobile-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+
+// ==================================================
+// 사이트 푸터 컴포넌트
+// ==================================================
+function SiteFooter({ navigateTo }) {
+  return (
+    <footer className="site-footer">
+      <div className="footer-inner">
+        <div className="footer-brand">
+          <span className="footer-logo">📖</span>
+          <span className="footer-brand-text">성경 PPT 생성기</span>
+          <p className="footer-tagline">예배 미디어 사역을 위한 전문 도구</p>
+        </div>
+
+        <div className="footer-links-grid">
+          <div className="footer-col">
+            <h3>서비스</h3>
+            <button onClick={() => navigateTo(PAGES.HOME)}>PPT 생성기</button>
+            <button onClick={() => navigateTo(PAGES.GUIDE)}>디자인 가이드</button>
+            <button onClick={() => navigateTo(PAGES.FAQ)}>자주 묻는 질문</button>
+          </div>
+          <div className="footer-col">
+            <h3>정보</h3>
+            <button onClick={() => navigateTo(PAGES.ABOUT)}>소개</button>
+            <button onClick={() => navigateTo(PAGES.CONTACT)}>문의하기</button>
+          </div>
+          <div className="footer-col">
+            <h3>법적 고지</h3>
+            <button onClick={() => navigateTo(PAGES.PRIVACY)}>개인정보처리방침</button>
+            <button onClick={() => navigateTo(PAGES.TERMS)}>이용약관</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-bottom">
+        © {new Date().getFullYear()} 성경 PPT 생성기. All rights reserved.
+      </div>
+    </footer>
+  );
+}
+
 
 export default App;
