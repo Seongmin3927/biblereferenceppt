@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import pptxgen from "pptxgenjs";
 import JSZip from "jszip";
+import { useForm, ValidationError } from "@formspree/react";
 import {
   ABOUT_CONTENT,
   DESIGN_GUIDE,
@@ -199,38 +200,13 @@ function FAQPage({ data, onBack }) {
 // 문의하기 페이지 컴포넌트 (Formspree 지원)
 // ==================================================
 function ContactPage({ data, onBack, showToast }) {
-  const [formStatus, setFormStatus] = useState(""); // "", "success", "error"
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, handleSubmit] = useForm("xrevbopp");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    const form = e.target;
-    const formData = new FormData(form);
-
-    try {
-      const response = await fetch("https://formspree.io/f/mqaeapzo", {
-        method: "POST",
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-      if (response.ok) {
-        setFormStatus("success");
-        form.reset();
-        showToast("문의사항이 성공적으로 전달되었습니다!", "success");
-      } else {
-        setFormStatus("error");
-        showToast("전송 중 오류가 발생했습니다. 다시 시도해 주세요.", "error");
-      }
-    } catch (err) {
-      setFormStatus("error");
-      showToast("네트워크 오류가 발생했습니다.", "error");
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    if (state.succeeded) {
+      showToast("문의사항이 성공적으로 전달되었습니다!", "success");
     }
-  };
+  }, [state.succeeded]);
 
   return (
     <article className="info-page">
@@ -258,65 +234,81 @@ function ContactPage({ data, onBack, showToast }) {
 
         <div className="contact-form-card">
           <h2 className="form-card-title">이메일 문의 보내기</h2>
-          <form onSubmit={handleSubmit} className="contact-form">
-            <div className="form-group">
-              <label htmlFor="contact-name">성함 / 교회명</label>
-              <input id="contact-name" type="text" name="name" required placeholder="예: 홍길동 (예배교회)" />
+          {state.succeeded ? (
+            <div className="upload-success" style={{ padding: "32px 16px", display: "flex", flexDirection: "column", gap: "12px", borderColor: "#86efac", color: "#166534", backgroundColor: "#f0fdf4" }}>
+              <span style={{ fontSize: "28px" }}>✅</span>
+              <div style={{ fontWeight: "700", fontSize: "16px" }}>문의 접수 완료</div>
+              <div style={{ fontSize: "14px", color: "#166534", textAlign: "center", lineHeight: "1.5" }}>
+                문의가 정상적으로 전송되었습니다.<br />사역팀이 신속히 메일로 답변 드리겠습니다.
+              </div>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="nav-link" 
+                style={{ marginTop: "12px", border: "1px solid #86efac", background: "white", padding: "8px 16px" }}
+              >
+                새 문의 보내기
+              </button>
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="contact-email">이메일 주소</label>
-              <input id="contact-email" type="email" name="_replyto" required placeholder="예: address@email.com" />
-            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="contact-form">
+              <div className="form-group">
+                <label htmlFor="contact-name">성함 / 교회명</label>
+                <input id="contact-name" type="text" name="name" required placeholder="예: 홍길동 (예배교회)" />
+                <ValidationError prefix="Name" field="name" errors={state.errors} />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="contact-email">이메일 주소</label>
+                <input id="contact-email" type="email" name="email" required placeholder="예: address@email.com" />
+                <ValidationError prefix="Email" field="email" errors={state.errors} />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="contact-subject">문의 유형</label>
-              <select id="contact-subject" name="subject" required className="form-select">
-                <option value="">선택해 주세요</option>
-                <option value="기능 문의">기능 문의 및 사용법</option>
-                <option value="오류 신고">오류 신고 (성경 오탈자 등)</option>
-                <option value="제안 및 건의">새로운 디자인/기능 건의</option>
-                <option value="제휴 및 기타">단체 제휴 및 기타 문의</option>
-              </select>
-            </div>
+              <div className="form-group">
+                <label htmlFor="contact-subject">문의 유형</label>
+                <select id="contact-subject" name="subject" required className="form-select">
+                  <option value="">선택해 주세요</option>
+                  <option value="기능 문의">기능 문의 및 사용법</option>
+                  <option value="오류 신고">오류 신고 (성경 오탈자 등)</option>
+                  <option value="제안 및 건의">새로운 디자인/기능 건의</option>
+                  <option value="제휴 및 기타">단체 제휴 및 기타 문의</option>
+                </select>
+                <ValidationError prefix="Subject" field="subject" errors={state.errors} />
+              </div>
 
-            <div className="form-group">
-              <label htmlFor="contact-message">문의 내용</label>
-              <textarea 
-                id="contact-message" 
-                name="message" 
-                required 
-                rows="6" 
-                placeholder="문의 또는 제안하실 세부 내용을 입력해 주세요."
-              ></textarea>
-            </div>
+              <div className="form-group">
+                <label htmlFor="contact-message">문의 내용</label>
+                <textarea 
+                  id="contact-message" 
+                  name="message" 
+                  required 
+                  rows="6" 
+                  placeholder="문의 또는 제안하실 세부 내용을 입력해 주세요."
+                ></textarea>
+                <ValidationError prefix="Message" field="message" errors={state.errors} />
+              </div>
 
-            {/* 스팸 방지용 숨겨진 필드 */}
-            <input type="text" name="_gotcha" style={{ display: "none" }} />
+              {/* 스팸 방지용 숨겨진 필드 */}
+              <input type="text" name="_gotcha" style={{ display: "none" }} />
 
-            <button type="submit" disabled={isSubmitting} className="btn-generate btn-submit">
-              {isSubmitting ? (
-                <>
-                  <div className="spinner"></div>
-                  전송 중...
-                </>
-              ) : (
-                <>
-                  <span>✉️</span>
-                  메일 전송하기
-                </>
+              <button type="submit" disabled={state.submitting} className="btn-generate btn-submit">
+                {state.submitting ? (
+                  <>
+                    <div className="spinner"></div>
+                    전송 중...
+                  </>
+                ) : (
+                  <>
+                    <span>✉️</span>
+                    메일 전송하기
+                  </>
+                )}
+              </button>
+              {state.errors && state.errors.length > 0 && (
+                <div className="upload-success" style={{ marginTop: "16px", borderColor: "#fca5a5", color: "#991b1b", backgroundColor: "#fef2f2" }}>
+                  <span>⚠️</span> 전송에 실패했습니다. 입력 양식을 확인하시거나 메일(wbluddy@gmail.com)로 직접 문의해주세요.
+                </div>
               )}
-            </button>
-          </form>
-          {formStatus === "success" && (
-            <div className="upload-success" style={{ marginTop: "16px", borderColor: "#86efac", color: "#166534", backgroundColor: "#f0fdf4" }}>
-              <span>✅</span> 문의가 정상 접수되었습니다. 신속히 답변 드리겠습니다.
-            </div>
-          )}
-          {formStatus === "error" && (
-            <div className="upload-success" style={{ marginTop: "16px", borderColor: "#fca5a5", color: "#991b1b", backgroundColor: "#fef2f2" }}>
-              <span>⚠️</span> 전송에 실패했습니다. 메일(wbluddy@gmail.com)로 직접 문의해주세요.
-            </div>
+            </form>
           )}
         </div>
       </div>
