@@ -399,6 +399,48 @@ function DisqusComments({ pageId, pageUrl, pageTitle }) {
 }
 
 
+// 한글 단어 잘림 방지 (어절 단위 줄바꿈 유지: OpenXML DrawingML eaLnBrk="0" 및 wrap="square") 처리 헬퍼
+function applyWordBreakRulesToSlideXml(slideXml) {
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(slideXml, "application/xml");
+    const parseError = xmlDoc.getElementsByTagName("parsererror");
+    if (parseError.length > 0) throw new Error("XML 파싱 실패");
+
+    // 모든 단락(<a:p>)에 eaLnBrk="0" 속성 부여 (한글 단어 잘림 허용 해제)
+    const paragraphs = xmlDoc.getElementsByTagName("a:p");
+    for (let i = 0; i < paragraphs.length; i++) {
+      const p = paragraphs[i];
+      let pPr = p.getElementsByTagName("a:pPr")[0];
+      if (!pPr) {
+        pPr = xmlDoc.createElementNS("http://schemas.openxmlformats.org/drawingml/2006/main", "a:pPr");
+        p.insertBefore(pPr, p.firstChild);
+      }
+      pPr.setAttribute("eaLnBrk", "0");
+    }
+
+    // 모든 텍스트 바디(<a:bodyPr>)에 wrap="square" 활성화
+    const bodyPrs = xmlDoc.getElementsByTagName("a:bodyPr");
+    for (let i = 0; i < bodyPrs.length; i++) {
+      if (!bodyPrs[i].hasAttribute("wrap")) {
+        bodyPrs[i].setAttribute("wrap", "square");
+      }
+    }
+
+    return new XMLSerializer().serializeToString(xmlDoc);
+  } catch (err) {
+    console.warn("DOMParser 처리 예외 발생, 정규식 폴백 적용:", err);
+    let patched = slideXml.replace(/<a:pPr\b([^>]*)>/g, (match, attrs) => {
+      if (/eaLnBrk="[^"]*"/.test(attrs)) {
+        return `<a:pPr${attrs.replace(/eaLnBrk="[^"]*"/, 'eaLnBrk="0"')}>`;
+      }
+      return `<a:pPr${attrs} eaLnBrk="0">`;
+    });
+    patched = patched.replace(/<a:p>(?!\s*<a:pPr)/g, '<a:p><a:pPr eaLnBrk="0"/>');
+    return patched;
+  }
+}
+
 function App() {
   const [bible, setBible] = useState(SAMPLE_BIBLE);
   const [userInput, setUserInput] = useState("시 23:1-6, 요 3:16");
@@ -810,11 +852,20 @@ function App() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(slideXml, "application/xml");
             
-            // 모든 텍스트 단락 <a:p> 탐색
+            // 모든 텍스트 단락 <a:p> 탐색 및 한글 단어 잘림 방지(eaLnBrk="0") 적용
             const paragraphs = xmlDoc.getElementsByTagName("a:p");
             
             for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
               const p = paragraphs[pIdx];
+
+              // 한글 단어 잘림 허용 해제: eaLnBrk="0" 단락 속성 주입
+              let pPr = p.getElementsByTagName("a:pPr")[0];
+              if (!pPr) {
+                pPr = xmlDoc.createElementNS("http://schemas.openxmlformats.org/drawingml/2006/main", "a:pPr");
+                p.insertBefore(pPr, p.firstChild);
+              }
+              pPr.setAttribute("eaLnBrk", "0");
+
               const tElements = p.getElementsByTagName("a:t");
               if (tElements.length === 0) continue;
               
@@ -845,6 +896,14 @@ function App() {
                 }
               }
             }
+
+            // 모든 본문 프로퍼티(<a:bodyPr>)에 wrap="square" 활성화
+            const bodyPrs = xmlDoc.getElementsByTagName("a:bodyPr");
+            for (let bIdx = 0; bIdx < bodyPrs.length; bIdx++) {
+              if (!bodyPrs[bIdx].hasAttribute("wrap")) {
+                bodyPrs[bIdx].setAttribute("wrap", "square");
+              }
+            }
             
             // XML 객체를 문자열로 다시 변환
             const serializer = new XMLSerializer();
@@ -857,6 +916,7 @@ function App() {
               .replace(/\(CHAPTER\)/gi, `${item.chapter}${chapterSuffix}`)
               .replace(/\(VERSE\)/gi, `${item.verse}절`)
               .replace(/\(CONTENT\)/gi, item.content);
+            slideXml = applyWordBreakRulesToSlideXml(slideXml);
           }
 
 
@@ -929,7 +989,8 @@ function App() {
             fontFace: selectedTheme.fontFamily,
             color: selectedTheme.accentColor,
             bold: true,
-            align: "left"
+            align: "left",
+            wrap: true
           });
 
           slide.addShape(pptx.shapes.RECTANGLE, {
@@ -951,11 +1012,33 @@ function App() {
             align: "center",
             valign: "middle",
             lineSpacing: 42,
+            wrap: true,
             bold: selectedTheme.fontFamily.includes("Serif")
           });
         });
 
-        await pptx.writeFile({ fileName: outputName });
+        // PptxGenJS 파일 생성 후 OpenXML 후처리를 통해 모든 슬라이드에 eaLnBrk="0" (한글 단어 잘림 방지) 일괄 적용
+        const rawBuffer = await pptx.write({ outputType: "arraybuffer" });
+        const postZip = await JSZip.loadAsync(rawBuffer);
+
+        const slideXmlFiles = Object.keys(postZip.files).filter((fname) =>
+          /^ppt\/slides\/slide\d+\.xml$/.test(fname)
+        );
+
+        for (const fname of slideXmlFiles) {
+          const originalXml = await postZip.file(fname).async("string");
+          const patchedXml = applyWordBreakRulesToSlideXml(originalXml);
+          postZip.file(fname, patchedXml);
+        }
+
+        const patchedBlob = await postZip.generateAsync({ type: "blob" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(patchedBlob);
+        link.download = outputName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
         showToast("기본 테마 PPTX 파일 다운로드가 완료되었습니다!", "success");
       }
     } catch (error) {
