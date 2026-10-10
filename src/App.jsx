@@ -119,35 +119,35 @@ const SAMPLE_BIBLE = {
 // ==================================================
 const THEMES = [
   {
-    id: "classic-alabaster",
-    name: "클래식 앨러배스터 (기본)",
-    className: "theme-alabaster",
-    bgColor: "F6F5F0",
-    gradientColors: ["#F6F5F0", "#FFFFFF"],
-    fontColor: "4A3E3D",
-    accentColor: "C29D5D",
+    id: "warm-sunset",
+    name: "선셋 앰버 (웜톤 기본)",
+    className: "theme-sunset",
+    bgColor: "FFF8F2",
+    gradientColors: ["#FFF8F2", "#FFF2E6"],
+    fontColor: "43281C",
+    accentColor: "EA580C",
     fontSize: 28,
     fontFamily: "Noto Serif KR"
   },
   {
-    id: "olive-garden",
-    name: "평온한 올리브 가든",
-    className: "theme-olive",
-    bgColor: "EAECE6",
-    gradientColors: ["#EAECE6", "#F2F4F0"],
-    fontColor: "2F3E32",
-    accentColor: "8B7355",
+    id: "warm-terracotta",
+    name: "따뜻한 테라코타",
+    className: "theme-terracotta",
+    bgColor: "FAF3EF",
+    gradientColors: ["#FAF3EF", "#F5EBE4"],
+    fontColor: "3E2723",
+    accentColor: "C2410C",
     fontSize: 28,
     fontFamily: "Noto Sans KR"
   },
   {
-    id: "morning-light",
-    name: "새벽 하늘 블루",
-    className: "theme-morning",
-    bgColor: "E6EEF4",
-    gradientColors: ["#E6EEF4", "#F0F5FA"],
-    fontColor: "2A3E4E",
-    accentColor: "B8860B",
+    id: "warm-golden-apricot",
+    name: "골든 살구 베이지",
+    className: "theme-apricot",
+    bgColor: "FFFBF5",
+    gradientColors: ["#FFFBF5", "#FFF3E0"],
+    fontColor: "4E342E",
+    accentColor: "D97706",
     fontSize: 28,
     fontFamily: "Noto Serif KR"
   }
@@ -1034,11 +1034,46 @@ function App() {
       <NavBar currentPage={currentPage} navigateTo={navigateTo} />
 
       <header className="header">
+        <div className="brand-badge-pill">
+          <span>✨</span>
+          <span>주일 예배 & 성경 프레젠테이션 자동화</span>
+        </div>
         <div className="header-icon">📖</div>
         <h1>성경 PPT 생성기</h1>
         <p>
-          깔끔하고 고품격 스타일의 성경 슬라이드를 클릭 한 번으로 쉽고 빠르게 제작하세요.
+          깔끔하고 품격 있는 웜톤 스타일의 성경 슬라이드를 클릭 한 번으로 쉽고 빠르게 제작하세요.
         </p>
+
+        {/* jubo_ocr 스타일 스마트 3단계 진행 표시기 (Stepper) */}
+        <div className="stepper-card">
+          <div className={`stepper-item ${templateFile ? 'completed' : 'active'}`}>
+            <div className="stepper-icon">
+              {templateFile ? '✓' : '1'}
+            </div>
+            <div className="stepper-info">
+              <span className="stepper-step">STEP 1</span>
+              <span className="stepper-label">템플릿 설정</span>
+            </div>
+          </div>
+          <div className={`stepper-line ${templateFile ? 'completed' : ''}`}></div>
+          <div className={`stepper-item ${previewList.length > 0 ? (previewList.some(p => p.missing) ? 'active' : 'completed') : 'active'}`}>
+            <div className="stepper-icon">
+              {previewList.length > 0 && !previewList.some(p => p.missing) ? '✓' : '2'}
+            </div>
+            <div className="stepper-info">
+              <span className="stepper-step">STEP 2</span>
+              <span className="stepper-label">구절 & 출처</span>
+            </div>
+          </div>
+          <div className={`stepper-line ${previewList.length > 0 && !previewList.some(p => p.missing) ? 'completed' : ''}`}></div>
+          <div className={`stepper-item ${previewList.length > 0 ? 'active' : ''}`}>
+            <div className="stepper-icon">3</div>
+            <div className="stepper-info">
+              <span className="stepper-step">STEP 3</span>
+              <span className="stepper-label">PPT 생성</span>
+            </div>
+          </div>
+        </div>
       </header>
 
       <main className="main-container">
@@ -1164,6 +1199,27 @@ function App() {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
             />
+
+            {/* jubo_ocr 스타일 추천 구절 퀵 칩스 */}
+            <div className="quick-chips-wrap">
+              <span className="quick-chips-label">⚡ 빠른 구절 입력:</span>
+              {[
+                { label: "시편 23편 (1-6절)", value: "시 23:1-6" },
+                { label: "요한복음 3:16", value: "요 3:16" },
+                { label: "로마서 8:28", value: "롬 8:28" },
+                { label: "창세기 1:1-5", value: "창 1:1-5" },
+                { label: "빌립보서 4:13", value: "빌 4:13" }
+              ].map((chip) => (
+                <button
+                  key={chip.value}
+                  type="button"
+                  className="quick-chip-btn"
+                  onClick={() => setUserInput(chip.value)}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
             
             <div className="syntax-grid">
               <div className="syntax-item">
