@@ -1,47 +1,47 @@
 /* ===========================
-   Design Tokens (주황 계열 웜톤 테마 - Warm Orange / Terracotta / Peach Amber)
+   Design Tokens (밝고 화사한 옐로우/골든 앰버 웜톤 테마 - Bright Warm Yellow & Sunny Amber)
    참고 UI/UX: jubo_ocr
    =========================== */
 :root {
-  /* Warm Backgrounds */
-  --bg-primary: #FFF9F5;      /* 아주 부드럽고 따뜻한 살구빛 아이보리 */
-  --bg-secondary: #FFF2EB;    /* 웜톤 소프트 피치 베이지 */
-  --bg-card: rgba(255, 255, 255, 0.95); /* 프리미엄 글래스모피즘 클린 화이트 */
+  /* Bright Warm Yellow Backgrounds */
+  --bg-primary: #FEFDF9;      /* 맑고 화사한 라이트 바닐라/크림 */
+  --bg-secondary: #FFFBEB;    /* 소프트 선샤인 옐로우 틴트 */
+  --bg-card: rgba(255, 255, 255, 0.96); /* 프리미엄 글래스모피즘 클린 화이트 */
   --bg-input: #FFFFFF;        /* 인풋 필드 */
   
   /* Borders */
-  --border-subtle: rgba(234, 88, 12, 0.16);  /* 부드러운 오렌지 앰버 테두리 */
-  --border-active: rgba(234, 88, 12, 0.65);  /* 활성 상태 웜톤 오렌지 테두리 */
-  --border-focus-glow: rgba(249, 115, 22, 0.25);
+  --border-subtle: rgba(245, 158, 11, 0.22);  /* 부드러운 골든 옐로우 테두리 */
+  --border-active: rgba(217, 119, 6, 0.7);    /* 활성 상태 앰버 옐로우 테두리 */
+  --border-focus-glow: rgba(251, 191, 36, 0.35);
   
-  /* Primary & Accent (주황/앰버 계열) */
-  --primary: #EA580C;         /* 메인 브랜드 웜 오렌지 */
-  --primary-hover: #C2410C;   /* 딥 테라코타 오렌지 */
-  --primary-light: #FFF7ED;   /* 초경량 오렌지 틴트 */
-  --accent-gold: #F97316;     /* 밝은 앰버 오렌지 */
-  --accent-purple: #9A3412;   /* 딥 러스티 오렌지 브라운 */
-  --accent-indigo: #EA580C;   /* 웜 테라코타 */
+  /* Primary & Accent (밝은 노란색 & 골든 앰버 계열) */
+  --primary: #D97706;         /* 가독성 높은 골든 앰버 */
+  --primary-hover: #B45309;   /* 딥 허니 앰버 */
+  --primary-light: #FEF3C7;   /* 소프트 옐로우 틴트 */
+  --accent-gold: #F59E0B;     /* 밝고 따뜻한 써니 옐로우 */
+  --accent-purple: #92400E;   /* 클래식 웜 우드 브라운 */
+  --accent-indigo: #D97706;   /* 웜 앰버 */
   
   /* Semantic Colors */
   --success: #16A34A;
   --success-light: #F0FDF4;
-  --warning: #D97706;
+  --warning: #F59E0B;
   --warning-light: #FFFBEB;
   
   /* Text */
-  --text-primary: #2C1810;    /* 딥 웜 브라운 차콜 (가독성 최상) */
-  --text-secondary: #6C5248;  /* 따뜻한 테라코타 세피아 그레이 */
-  --text-muted: #9E877C;      /* 차분한 웜 토프 */
+  --text-primary: #1C1917;    /* 또렷하고 편안한 웜 딥 브라운 */
+  --text-secondary: #57534E;  /* 따뜻한 스톤 그레이 */
+  --text-muted: #8E877F;      /* 차분한 웜 토프 */
   
-  /* Gradients */
-  --gradient-hero: radial-gradient(circle at 50% 0%, #FFEAD8 0%, #FFF5ED 40%, #FFF9F5 100%);
-  --gradient-card: linear-gradient(145deg, #FFFFFF, #FFF9F5);
-  --gradient-button: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%);
-  --gradient-orange: linear-gradient(135deg, #FB923C, #EA580C);
+  /* Gradients (화사한 옐로우/골든) */
+  --gradient-hero: radial-gradient(circle at 50% 0%, #FEF3C7 0%, #FFFBEB 45%, #FEFDF9 100%);
+  --gradient-card: linear-gradient(145deg, #FFFFFF, #FFFDF5);
+  --gradient-button: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%);
+  --gradient-orange: linear-gradient(135deg, #FDE68A, #F59E0B);
   
   /* Shadows */
-  --shadow-card: 0 12px 36px -6px rgba(154, 52, 18, 0.08), 0 4px 12px rgba(0, 0, 0, 0.03);
-  --shadow-glow: 0 0 28px rgba(249, 115, 22, 0.15);
+  --shadow-card: 0 12px 36px -6px rgba(180, 83, 9, 0.08), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --shadow-glow: 0 0 28px rgba(251, 191, 36, 0.22);
   
   /* Radius */
   --radius-card: 20px;
@@ -92,19 +92,19 @@ body {
   overflow: hidden;
 }
 
-/* 웜톤 앰비언트 글로우 배경 효과 */
+/* 밝고 화사한 옐로우 앰비언트 글로우 배경 효과 */
 .app::before {
   content: '';
   position: fixed;
   top: -15%;
   left: 50%;
   transform: translateX(-50%);
-  width: 900px;
-  height: 500px;
-  background: radial-gradient(ellipse, rgba(251, 146, 60, 0.14) 0%, rgba(254, 215, 170, 0.08) 50%, transparent 75%);
+  width: 950px;
+  height: 520px;
+  background: radial-gradient(ellipse, rgba(253, 224, 71, 0.22) 0%, rgba(254, 240, 138, 0.12) 50%, transparent 75%);
   pointer-events: none;
   z-index: 0;
-  filter: blur(40px);
+  filter: blur(45px);
 }
 
 .app::after {
@@ -114,10 +114,10 @@ body {
   right: -10%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(234, 88, 12, 0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
-  filter: blur(50px);
+  filter: blur(55px);
 }
 
 /* ===========================
@@ -138,21 +138,21 @@ body {
   gap: 8px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: rgba(255, 237, 213, 0.8);
+  background: rgba(254, 243, 199, 0.85);
   backdrop-filter: blur(8px);
-  color: #C2410C;
-  border: 1px solid rgba(251, 146, 60, 0.4);
+  color: #B45309;
+  border: 1px solid rgba(245, 158, 11, 0.45);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
   margin-bottom: 16px;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.1);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);
   transition: all 0.3s ease;
 }
 
 .brand-badge-pill:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.16);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.2);
 }
 
 .header-icon {
@@ -162,8 +162,8 @@ body {
   width: 68px;
   height: 68px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #FB923C 0%, #EA580C 100%);
-  box-shadow: 0 10px 25px -4px rgba(234, 88, 12, 0.4);
+  background: linear-gradient(135deg, #FDE047 0%, #F59E0B 100%);
+  box-shadow: 0 10px 25px -4px rgba(245, 158, 11, 0.45);
   margin-bottom: 16px;
   font-size: 32px;
   color: white;
@@ -179,7 +179,7 @@ body {
   font-size: clamp(26px, 4.5vw, 36px);
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #2C1810;
+  color: #1C1917;
   margin-bottom: 10px;
 }
 
@@ -199,13 +199,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(251, 146, 60, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: 18px;
   padding: 16px 28px;
-  box-shadow: 0 10px 30px -4px rgba(154, 52, 18, 0.08), 0 0 20px rgba(249, 115, 22, 0.06);
+  box-shadow: 0 10px 30px -4px rgba(180, 83, 9, 0.08), 0 0 20px rgba(251, 191, 36, 0.1);
   margin: 0 auto 24px;
   max-width: 780px;
   transition: all 0.3s ease;
@@ -228,17 +228,17 @@ body {
   justify-content: center;
   font-weight: 800;
   font-size: 0.95rem;
-  background: #FFF7ED;
-  color: #9A3412;
-  border: 2px solid #FED7AA;
+  background: #FFFBEB;
+  color: #B45309;
+  border: 2px solid #FDE68A;
   transition: all 0.25s ease;
 }
 
 .stepper-item.active .stepper-icon {
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%);
   color: #FFFFFF;
-  border-color: #EA580C;
-  box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.2), 0 4px 12px rgba(234, 88, 12, 0.3);
+  border-color: #D97706;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.22), 0 4px 12px rgba(217, 119, 6, 0.35);
 }
 
 .stepper-item.completed .stepper-icon {
@@ -279,15 +279,15 @@ body {
 .stepper-line {
   flex: 1;
   height: 3px;
-  background: #FED7AA;
+  background: #FDE68A;
   margin: 0 16px;
   border-radius: 2px;
   transition: all 0.4s ease;
 }
 
 .stepper-line.completed {
-  background: linear-gradient(90deg, #EA580C, #16A34A);
-  box-shadow: 0 0 8px rgba(234, 88, 12, 0.3);
+  background: linear-gradient(90deg, #F59E0B, #16A34A);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
 }
 
 @media (max-width: 640px) {
@@ -331,7 +331,7 @@ body {
   background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(251, 146, 60, 0.28);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   border-radius: var(--radius-card);
   padding: 30px 28px;
   box-shadow: var(--shadow-card);
@@ -339,7 +339,7 @@ body {
 }
 
 .card:hover {
-  border-color: rgba(234, 88, 12, 0.45);
+  border-color: rgba(245, 158, 11, 0.55);
   box-shadow: var(--shadow-card), var(--shadow-glow);
 }
 
@@ -390,11 +390,11 @@ label {
   font-size: 11px;
   padding: 3px 9px;
   border-radius: 100px;
-  background: rgba(234, 88, 12, 0.12);
-  color: #C2410C;
+  background: rgba(245, 158, 11, 0.15);
+  color: #B45309;
   font-weight: 700;
   letter-spacing: 0.3px;
-  border: 1px solid rgba(234, 88, 12, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 input[type="text"] {
@@ -441,9 +441,9 @@ input[type="text"]:focus {
 }
 
 .quick-chip-btn {
-  background: #FFF7ED;
-  color: #C2410C;
-  border: 1px solid rgba(251, 146, 60, 0.4);
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid rgba(245, 158, 11, 0.45);
   padding: 5px 12px;
   border-radius: 9999px;
   font-size: 12px;
@@ -454,33 +454,33 @@ input[type="text"]:focus {
 }
 
 .quick-chip-btn:hover {
-  background: linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%);
-  border-color: #EA580C;
-  color: #9A3412;
+  background: linear-gradient(135deg, #FDE68A 0%, #FCD34D 100%);
+  border-color: #D97706;
+  color: #78350F;
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.15);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.18);
 }
 
 /* ===========================
    File Upload Zone (jubo_ocr UI 스타일 적용)
    =========================== */
 .upload-zone {
-  border: 2px dashed rgba(249, 115, 22, 0.35);
+  border: 2px dashed rgba(245, 158, 11, 0.45);
   border-radius: var(--radius-card);
   padding: 32px 24px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: linear-gradient(180deg, rgba(255, 247, 237, 0.7) 0%, rgba(255, 255, 255, 0.8) 100%);
+  background: linear-gradient(180deg, rgba(254, 243, 199, 0.6) 0%, rgba(255, 255, 255, 0.85) 100%);
 }
 
 .upload-zone:hover,
 .upload-zone.drag-over {
   border-color: var(--primary);
-  background: rgba(255, 237, 213, 0.45);
+  background: rgba(254, 243, 199, 0.85);
   transform: scale(1.008);
-  box-shadow: 0 8px 24px -4px rgba(234, 88, 12, 0.2);
+  box-shadow: 0 8px 24px -4px rgba(217, 119, 6, 0.2);
 }
 
 .upload-zone input[type="file"] {
@@ -497,7 +497,7 @@ input[type="text"]:focus {
   margin-bottom: 10px;
   display: inline-block;
   color: var(--primary);
-  filter: drop-shadow(0 2px 8px rgba(234, 88, 12, 0.25));
+  filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.3));
 }
 
 .upload-text {
@@ -518,17 +518,17 @@ input[type="text"]:focus {
   justify-content: center;
   gap: 12px;
   padding: 14px 18px;
-  background: #FFF7ED;
-  border: 1.5px solid rgba(251, 146, 60, 0.45);
+  background: #FFFBEB;
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
   border-radius: var(--radius-input);
-  color: #C2410C;
+  color: #92400E;
   font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.08);
+  box-shadow: 0 2px 10px rgba(217, 119, 6, 0.08);
 }
 
 .upload-success .file-name {
-  color: #9A3412;
+  color: #78350F;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -547,8 +547,8 @@ input[type="text"]:focus {
 }
 
 .syntax-item {
-  background: #FFFBF7;
-  border: 1px solid rgba(251, 146, 60, 0.22);
+  background: #FFFDF5;
+  border: 1px solid rgba(245, 158, 11, 0.22);
   border-radius: 10px;
   padding: 12px 14px;
   transition: all 0.2s ease;
@@ -557,13 +557,13 @@ input[type="text"]:focus {
 .syntax-item:hover {
   border-color: var(--primary);
   background: #FFFFFF;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.08);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.1);
 }
 
 .syntax-code {
   font-family: 'Courier New', monospace;
   font-size: 13.5px;
-  color: #C2410C;
+  color: #B45309;
   font-weight: 700;
   margin-bottom: 3px;
 }
@@ -590,12 +590,12 @@ input[type="text"]:focus {
 }
 
 .preview-list::-webkit-scrollbar-track {
-  background: #FFF7ED;
+  background: #FFFBEB;
   border-radius: 4px;
 }
 
 .preview-list::-webkit-scrollbar-thumb {
-  background: #FDBA74;
+  background: #FCD34D;
   border-radius: 4px;
 }
 
@@ -606,16 +606,16 @@ input[type="text"]:focus {
   padding: 14px 18px;
   background: #FFFFFF;
   border-radius: 12px;
-  border: 1px solid rgba(251, 146, 60, 0.25);
+  border: 1px solid rgba(245, 158, 11, 0.28);
   font-size: 13.5px;
-  box-shadow: 0 2px 8px rgba(154, 52, 18, 0.04);
+  box-shadow: 0 2px 8px rgba(180, 83, 9, 0.04);
   transition: all 0.2s ease;
   animation: slideIn 0.2s ease;
 }
 
 .preview-item:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.1);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.12);
   transform: translateY(-1px);
 }
 
@@ -625,7 +625,7 @@ input[type="text"]:focus {
 }
 
 .preview-badge {
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+  background: linear-gradient(135deg, #FBBF24 0%, #D97706 100%);
   color: white;
   border-radius: 8px;
   padding: 4px 10px;
@@ -633,7 +633,8 @@ input[type="text"]:focus {
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 .preview-verse {
@@ -647,9 +648,9 @@ input[type="text"]:focus {
   color: var(--text-muted);
   font-size: 14px;
   padding: 30px;
-  background: #FFFBF7;
+  background: #FFFDF5;
   border-radius: 12px;
-  border: 1px dashed rgba(251, 146, 60, 0.3);
+  border: 1px dashed rgba(245, 158, 11, 0.35);
 }
 
 .preview-count {
@@ -666,7 +667,7 @@ input[type="text"]:focus {
 }
 
 /* ===========================
-   Slide Theme Selector (웜톤 팔레트)
+   Slide Theme Selector (밝은 노랑/골든 웜톤 팔레트)
    =========================== */
 .theme-grid {
   display: grid;
@@ -687,7 +688,7 @@ input[type="text"]:focus {
 }
 
 .theme-preview {
-  border: 2px solid rgba(251, 146, 60, 0.25);
+  border: 2px solid rgba(245, 158, 11, 0.28);
   border-radius: 14px;
   overflow: hidden;
   aspect-ratio: 16/9;
@@ -704,7 +705,7 @@ input[type="text"]:focus {
 
 .theme-option input:checked + .theme-preview {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.25), 0 8px 20px -2px rgba(234, 88, 12, 0.25);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3), 0 8px 20px -2px rgba(217, 119, 6, 0.25);
   transform: translateY(-2px);
 }
 
@@ -730,21 +731,21 @@ input[type="text"]:focus {
   margin-top: 8px;
 }
 
-/* Theme backgrounds (Warm Church Styles) */
-.theme-sunset { background: linear-gradient(135deg, #FFF8F2, #FFF2E6); color: #43281C; }
-.theme-terracotta { background: linear-gradient(135deg, #FAF3EF, #F5EBE4); color: #3E2723; }
-.theme-apricot { background: linear-gradient(135deg, #FFFBF5, #FFF3E0); color: #4E342E; }
+/* Theme backgrounds (Bright Warm Yellow Styles) */
+.theme-sunshine { background: linear-gradient(135deg, #FEFCE8, #FEF08A); color: #422006; }
+.theme-vanilla { background: linear-gradient(135deg, #FFFBEB, #FDE68A); color: #451A03; }
+.theme-amber { background: linear-gradient(135deg, #FFFDF5, #FDE047); color: #361A03; }
 
 /* ===========================
-   Generate Button (jubo_ocr CTA 스타일 - 주황/웜톤 그라데이션)
+   Generate Button (화사한 옐로우/골든 그라데이션)
    =========================== */
 .btn-generate {
   width: 100%;
   padding: 18px 28px;
   background: var(--gradient-button);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: var(--radius-btn);
-  color: white;
+  color: #1C1917;
   font-family: var(--font-sans);
   font-size: 17px;
   font-weight: 800;
@@ -757,23 +758,23 @@ input[type="text"]:focus {
   position: relative;
   overflow: hidden;
   letter-spacing: 0.2px;
-  box-shadow: 0 8px 26px -2px rgba(234, 88, 12, 0.45), 0 0 16px rgba(249, 115, 22, 0.2);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 26px -2px rgba(217, 119, 6, 0.35), 0 0 16px rgba(251, 191, 36, 0.3);
 }
 
 .btn-generate::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.22), transparent);
+  background: linear-gradient(135deg, rgba(255,255,255,0.35), transparent);
   opacity: 0;
   transition: opacity 0.25s ease;
 }
 
 .btn-generate:hover:not(:disabled) {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #FB923C 0%, #EA580C 50%, #9A3412 100%);
-  box-shadow: 0 12px 32px -2px rgba(234, 88, 12, 0.55), 0 0 24px rgba(249, 115, 22, 0.35);
+  background: linear-gradient(135deg, #FDE047 0%, #F59E0B 50%, #B45309 100%);
+  color: #FFFFFF;
+  box-shadow: 0 12px 32px -2px rgba(217, 119, 6, 0.45), 0 0 24px rgba(251, 191, 36, 0.45);
 }
 
 .btn-generate:hover::before {
@@ -785,7 +786,8 @@ input[type="text"]:focus {
 }
 
 .btn-generate:disabled {
-  background: #D1D5DB;
+  background: #E5E7EB;
+  color: #9CA3AF;
   box-shadow: none;
   cursor: not-allowed;
   transform: none;
@@ -854,13 +856,13 @@ input[type="text"]:focus {
 }
 
 .toast.info {
-  background: #FFF7ED;
-  border: 1px solid rgba(249, 115, 22, 0.35);
-  color: #C2410C;
+  background: #FFFBEB;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #B45309;
 }
 
 /* ===========================
-   Site Navigation (웜톤 오렌지 테마)
+   Site Navigation (밝고 화사한 옐로우/골든 웜톤 테마)
    =========================== */
 .site-nav {
   position: sticky;
@@ -868,11 +870,11 @@ input[type="text"]:focus {
   left: 0;
   width: 100%;
   z-index: 100;
-  background: rgba(255, 249, 245, 0.9); /* 반투명 웜톤 피치 아이보리 */
+  background: rgba(254, 253, 249, 0.92); /* 반투명 웜 크림 */
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(251, 146, 60, 0.22);
-  box-shadow: 0 4px 16px rgba(154, 52, 18, 0.04);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.04);
 }
 
 .nav-inner {
@@ -897,14 +899,14 @@ input[type="text"]:focus {
 
 .nav-logo-icon {
   font-size: 22px;
-  filter: drop-shadow(0 2px 4px rgba(234, 88, 12, 0.2));
+  filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.25));
 }
 
 .nav-logo-text {
   font-family: var(--font-sans);
   font-size: 19px;
   font-weight: 800;
-  background: linear-gradient(135deg, #EA580C 0%, #C2410C 50%, #9A3412 100%);
+  background: linear-gradient(135deg, #D97706 0%, #B45309 60%, #92400E 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -934,14 +936,14 @@ input[type="text"]:focus {
 
 .nav-link:hover {
   color: var(--primary);
-  background: rgba(255, 237, 213, 0.6);
+  background: rgba(254, 243, 199, 0.6);
 }
 
 .nav-link-active {
-  color: #C2410C !important;
-  background: #FFEDD5 !important;
+  color: #B45309 !important;
+  background: #FEF3C7 !important;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.1);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.12);
 }
 
 .nav-mobile-toggle {
@@ -1472,7 +1474,7 @@ input[type="text"]:focus {
   transition: all 0.25s ease;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23EA580C' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D97706' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
   background-size: 16px;

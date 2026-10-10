@@ -119,35 +119,35 @@ const SAMPLE_BIBLE = {
 // ==================================================
 const THEMES = [
   {
-    id: "warm-sunset",
-    name: "선셋 앰버 (웜톤 기본)",
-    className: "theme-sunset",
-    bgColor: "FFF8F2",
-    gradientColors: ["#FFF8F2", "#FFF2E6"],
-    fontColor: "43281C",
-    accentColor: "EA580C",
+    id: "bright-sunshine",
+    name: "써니 옐로우 (기본)",
+    className: "theme-sunshine",
+    bgColor: "FEFCE8",
+    gradientColors: ["#FEFCE8", "#FEF08A"],
+    fontColor: "422006",
+    accentColor: "D97706",
     fontSize: 28,
     fontFamily: "Noto Serif KR"
   },
   {
-    id: "warm-terracotta",
-    name: "따뜻한 테라코타",
-    className: "theme-terracotta",
-    bgColor: "FAF3EF",
-    gradientColors: ["#FAF3EF", "#F5EBE4"],
-    fontColor: "3E2723",
-    accentColor: "C2410C",
+    id: "warm-vanilla",
+    name: "바닐라 크림 옐로우",
+    className: "theme-vanilla",
+    bgColor: "FFFBEB",
+    gradientColors: ["#FFFBEB", "#FDE68A"],
+    fontColor: "451A03",
+    accentColor: "B45309",
     fontSize: 28,
     fontFamily: "Noto Sans KR"
   },
   {
-    id: "warm-golden-apricot",
-    name: "골든 살구 베이지",
-    className: "theme-apricot",
-    bgColor: "FFFBF5",
-    gradientColors: ["#FFFBF5", "#FFF3E0"],
-    fontColor: "4E342E",
-    accentColor: "D97706",
+    id: "golden-amber",
+    name: "골든 앰버 허니",
+    className: "theme-amber",
+    bgColor: "FFFDF5",
+    gradientColors: ["#FFFDF5", "#FDE047"],
+    fontColor: "361A03",
+    accentColor: "F59E0B",
     fontSize: 28,
     fontFamily: "Noto Serif KR"
   }
@@ -468,6 +468,22 @@ function App() {
       })
       .catch((err) => {
         console.warn("기본 성경 자동 로딩 실패:", err);
+      });
+  }, []);
+
+  // 컴포넌트 마운트 시 기본 내장 PPT 템플릿(성경봉독자막양식.pptx) 자동 로드
+  useEffect(() => {
+    fetch("./default_template.pptx")
+      .then((res) => {
+        if (!res.ok) throw new Error("기본 PPT 템플릿을 찾을 수 없습니다.");
+        return res.arrayBuffer();
+      })
+      .then((buffer) => {
+        setTemplateFile(buffer);
+        setTemplateFileName("성경봉독자막양식.pptx (기본 내장)");
+      })
+      .catch((err) => {
+        console.warn("기본 PPT 템플릿 자동 로드 실패:", err);
       });
   }, []);
 
@@ -1084,22 +1100,57 @@ function App() {
           </h2>
           
           {templateFileName ? (
-            <div className="upload-success" style={{ marginBottom: "16px" }}>
-              <span>✅</span>
-              <span className="file-name">{templateFileName}</span>
-              <span>양식 적용 완료</span>
-              <button 
-                onClick={() => { setTemplateFile(null); setTemplateFileName(""); }}
-                style={{ marginLeft: "auto", background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
-              >
-                취소
-              </button>
+            <div className="upload-success" style={{ marginBottom: "16px", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
+                <span>📁</span>
+                <span className="file-name">{templateFileName}</span>
+                <span style={{ fontSize: "12px", background: "rgba(245, 158, 11, 0.2)", padding: "2px 8px", borderRadius: "10px", fontWeight: "700" }}>양식 적용 중</span>
+              </div>
+              <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+                <label 
+                  style={{ 
+                    cursor: "pointer", 
+                    fontSize: "12px", 
+                    fontWeight: "700", 
+                    color: "var(--primary)",
+                    padding: "4px 10px",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(245, 158, 11, 0.4)",
+                    borderRadius: "6px"
+                  }}
+                >
+                  다른 양식 업로드
+                  <input type="file" accept=".pptx" style={{ display: "none" }} onChange={handleTemplateUpload} />
+                </label>
+                <button 
+                  onClick={() => { 
+                    fetch("./default_template.pptx")
+                      .then(res => res.arrayBuffer())
+                      .then(buf => {
+                        setTemplateFile(buf);
+                        setTemplateFileName("성경봉독자막양식.pptx (기본 내장)");
+                        showToast("기본 내장 템플릿으로 초기화되었습니다.", "info");
+                      });
+                  }}
+                  style={{ 
+                    background: "none", 
+                    border: "none", 
+                    color: "var(--text-muted)", 
+                    cursor: "pointer", 
+                    fontSize: "12px", 
+                    fontWeight: "600",
+                    textDecoration: "underline"
+                  }}
+                >
+                  기본값 복원
+                </button>
+              </div>
             </div>
           ) : (
             <div className="upload-zone" style={{ marginBottom: "16px" }}>
               <span className="upload-icon">📊</span>
               <p className="upload-text">나만의 PPT 템플릿 파일(.pptx)을 업로드하세요</p>
-              <p className="upload-hint">업로드하지 않을 시 아래 3번 테마 중 선택하신 프리미엄 기본 테마로 슬라이드가 생성됩니다.</p>
+              <p className="upload-hint">업로드하지 않을 시 기본 내장 양식(성경봉독자막양식.pptx) 또는 아래 슬라이드 테마로 생성됩니다.</p>
               <input type="file" accept=".pptx" onChange={handleTemplateUpload} />
             </div>
           )}
