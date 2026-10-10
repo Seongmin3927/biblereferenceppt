@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import pptxgen from "pptxgenjs";
 import JSZip from "jszip";
 import { useForm, ValidationError } from "@formspree/react";
@@ -38,6 +38,47 @@ const BOOK_MAP = {
   "딛": "디도서", "몬": "빌레몬서", "히": "히브리서", "야": "야고보서",
   "벧전": "베드로전서", "벧후": "베드로후서", "요일": "요한일서", "요이": "요한이서", "요삼": "요한삼서",
   "유": "유다서", "계": "요한계시록"
+};
+
+// ==================================================
+// 갓피아(godpia.com) 책 코드 매핑 (약어 → 갓피아 vol 코드)
+// 참고: https://github.com/Seongmin3927/biblereference_godsitepia
+// ==================================================
+const GODPIA_BOOK_CODES = {
+  // 구약성경
+  "창": "gen", "출": "exo", "레": "lev", "민": "num", "신": "deu",
+  "수": "jos", "삿": "jdg", "룻": "rut",
+  "삼상": "1sa", "삼하": "2sa", "왕상": "1ki", "왕하": "2ki",
+  "대상": "1ch", "대하": "2ch", "스": "ezr", "느": "neh", "에": "est",
+  "욥": "job", "시": "psa", "잠": "pro", "전": "ecc", "아": "sng",
+  "사": "isa", "렘": "jer", "애": "lam", "겔": "ezk", "단": "dan",
+  "호": "hos", "욜": "jol", "암": "amo", "오": "oba", "옵": "oba", "욘": "jon", "미": "mic",
+  "나": "nam", "합": "hab", "습": "zep", "학": "hag", "슥": "zec", "말": "mal",
+
+  // 신약성경
+  "마": "mat", "막": "mrk", "눅": "luk", "요": "jhn",
+  "행": "act", "롬": "rom", "고전": "1co", "고후": "2co",
+  "갈": "gal", "엡": "eph", "빌": "php", "골": "col",
+  "살전": "1th", "살후": "2th", "딤전": "1ti", "딤후": "2ti",
+  "딛": "tit", "몬": "phm", "히": "heb", "야": "jas", "약": "jas",
+  "벧전": "1pe", "벧후": "2pe", "요일": "1jn", "요이": "2jn", "요삼": "3jn",
+  "유": "jud", "계": "rev"
+};
+
+// 갓피아에서 지원하는 번역본
+const GODPIA_VERSIONS = [
+  { code: "gae", name: "개역개정4판" },
+  { code: "han", name: "개역한글" },
+  { code: "saenew", name: "새번역" },
+  { code: "easy", name: "쉬운성경" },
+  { code: "hyun", name: "현대인의성경" },
+  { code: "niv", name: "NIV (영어)" }
+];
+
+// 본문 출처
+const BIBLE_SOURCES = {
+  LOCAL: "local",
+  GODPIA: "godpia"
 };
 
 // ==================================================
@@ -373,6 +414,13 @@ function App() {
   const [templateFile, setTemplateFile] = useState(null);
   const [templateFileName, setTemplateFileName] = useState("");
 
+  // 성경 본문 출처 (내장 텍스트 / 갓피아 실시간 스크랩)
+  const [bibleSource, setBibleSource] = useState(BIBLE_SOURCES.LOCAL);
+  const [godpiaVersion, setGodpiaVersion] = useState("gae");
+  // 갓피아 장 단위 캐시: { "gae|act|1": { status: "ok", verses: { "1": "..." } } | { status: "loading" } | { status: "error", error } }
+  const [godpiaCache, setGodpiaCache] = useState({});
+  const godpiaInFlight = useRef(new Set());
+
 
   // 알림 토스트 추가
   const showToast = (message, type = "info") => {
@@ -424,6 +472,63 @@ function App() {
   }, []);
 
 
+  // 갓피아 모드: 입력된 구절에 필요한 장(chapter)들을 /api/bible 프록시로 스크랩
+  useEffect(() => {
+    if (bibleSource !== BIBLE_SOURCES.GODPIA || !userInput.trim()) return;
+
+    // 타이핑 중 과도한 요청을 막기 위해 0.6초 디바운스
+    const timer = setTimeout(() => {
+      const needed = new Map();
+      parseInput(userInput).forEach(([book_short, chapter]) => {
+        const code = GODPIA_BOOK_CODES[book_short];
+        if (!code) return;
+        const key = `${godpiaVersion}|${code}|${chapter}`;
+        if (!godpiaCache[key] && !godpiaInFlight.current.has(key)) {
+          needed.set(key, { code, chapter });
+        }
+      });
+
+      // 한 번에 너무 많은 장을 요청하지 않도록 제한
+      const MAX_CHAPTERS_PER_BATCH = 30;
+      const targets = [...needed.entries()].slice(0, MAX_CHAPTERS_PER_BATCH);
+      if (targets.length === 0) return;
+
+      setGodpiaCache((prev) => {
+        const next = { ...prev };
+        targets.forEach(([key]) => { next[key] = { status: "loading" }; });
+        return next;
+      });
+
+      targets.forEach(([key, { code, chapter }]) => {
+        godpiaInFlight.current.add(key);
+        fetch(`/api/bible?vol=${code}&chap=${chapter}&ver=${godpiaVersion}`)
+          .then(async (res) => {
+            const data = await res.json().catch(() => null);
+            if (!res.ok || !data || !data.success) {
+              throw new Error((data && data.error) || `HTTP ${res.status}`);
+            }
+            const verses = {};
+            data.data.verses.forEach((v) => { verses[String(v.verse)] = v.text; });
+            setGodpiaCache((prev) => ({ ...prev, [key]: { status: "ok", verses } }));
+          })
+          .catch((err) => {
+            console.warn("갓피아 스크랩 실패:", key, err);
+            setGodpiaCache((prev) => ({ ...prev, [key]: { status: "error", error: err.message } }));
+          })
+          .finally(() => {
+            godpiaInFlight.current.delete(key);
+          });
+      });
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [userInput, bibleSource, godpiaVersion, godpiaCache]);
+
+  // 갓피아 요청 진행 여부 (현재 번역본 기준)
+  const isGodpiaLoading =
+    bibleSource === BIBLE_SOURCES.GODPIA &&
+    Object.entries(godpiaCache).some(([key, entry]) => key.startsWith(`${godpiaVersion}|`) && entry.status === "loading");
+
   // 입력 파싱 및 실시간 미리보기 리스트 생성
   useEffect(() => {
     if (!userInput.trim()) {
@@ -432,13 +537,38 @@ function App() {
     }
     const refs = parseInput(userInput);
     const resolved = [];
+    const useGodpia = bibleSource === BIBLE_SOURCES.GODPIA;
+
+    // 선택된 출처에서 한 장 분량의 구절 객체를 가져옴 → { verses, message }
+    const getChapter = (book_short, chapter) => {
+      if (!useGodpia) {
+        const verses = bible[book_short] && bible[book_short][chapter];
+        return {
+          verses: verses || null,
+          message: "구절 정보를 찾을 수 없습니다. (전체 성경 텍스트 파일을 업로드해 주세요)"
+        };
+      }
+      const code = GODPIA_BOOK_CODES[book_short];
+      if (!code) {
+        return { verses: null, message: `갓피아에서 지원하지 않는 성경 약어입니다. (${book_short})` };
+      }
+      const entry = godpiaCache[`${godpiaVersion}|${code}|${chapter}`];
+      if (!entry || entry.status === "loading") {
+        return { verses: null, message: "⏳ 갓피아에서 구절을 불러오는 중입니다..." };
+      }
+      if (entry.status === "error") {
+        return { verses: null, message: `갓피아 스크랩 실패: ${entry.error}` };
+      }
+      return { verses: entry.verses, message: "갓피아에서 해당 구절을 찾을 수 없습니다." };
+    };
 
     refs.forEach(([book_short, chapter, verse]) => {
       const book_full = BOOK_MAP[book_short] || book_short;
+      const { verses: chapterVerses, message } = getChapter(book_short, chapter);
 
       if (verse === "ALL") {
-        if (bible[book_short] && bible[book_short][chapter]) {
-          const sortedVerses = Object.keys(bible[book_short][chapter]).sort((a, b) => parseInt(a) - parseInt(b));
+        if (chapterVerses) {
+          const sortedVerses = Object.keys(chapterVerses).sort((a, b) => parseInt(a) - parseInt(b));
           sortedVerses.forEach((v) => {
             resolved.push({
               key: `${book_short} ${chapter}:${v}`,
@@ -446,36 +576,48 @@ function App() {
               bookShort: book_short,
               chapter,
               verse: v,
-              content: bible[book_short][chapter][v]
+              content: chapterVerses[v]
             });
+          });
+        } else if (useGodpia) {
+          // 갓피아 로딩/오류 상태를 장 단위로 표시
+          resolved.push({
+            key: `${book_short} ${chapter}`,
+            book: book_full,
+            bookShort: book_short,
+            chapter,
+            verse: "전체",
+            content: message,
+            missing: true
           });
         }
       } else {
-        if (bible[book_short] && bible[book_short][chapter] && bible[book_short][chapter][verse]) {
+        if (chapterVerses && chapterVerses[verse]) {
           resolved.push({
             key: `${book_short} ${chapter}:${verse}`,
             book: book_full,
             bookShort: book_short,
             chapter,
             verse,
-            content: bible[book_short][chapter][verse]
+            content: chapterVerses[verse]
           });
         } else {
-          // 샘플/업로드 데이터에 없는 경우 placeholder 표시
+          // 데이터에 없는 경우 placeholder 표시
           resolved.push({
             key: `${book_short} ${chapter}:${verse}`,
             book: book_full,
             bookShort: book_short,
             chapter,
             verse,
-            content: `구절 정보를 찾을 수 없습니다. (전체 성경 텍스트 파일을 업로드해 주세요)`
+            content: message,
+            missing: true
           });
         }
       }
     });
 
     setPreviewList(resolved);
-  }, [userInput, bible]);
+  }, [userInput, bible, bibleSource, godpiaVersion, godpiaCache]);
 
   // 성경 텍스트 파일 파싱
   const handleFileUpload = (e) => {
@@ -595,6 +737,17 @@ function App() {
     if (previewList.length === 0) {
       showToast("생성할 성경 구절이 없습니다. 구절을 올바르게 입력해주세요.", "error");
       return;
+    }
+
+    if (bibleSource === BIBLE_SOURCES.GODPIA) {
+      if (isGodpiaLoading) {
+        showToast("갓피아에서 구절을 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "info");
+        return;
+      }
+      if (previewList.some((item) => item.missing)) {
+        showToast("갓피아에서 가져오지 못한 구절이 있습니다. 미리보기를 확인해주세요.", "error");
+        return;
+      }
     }
 
     setIsGenerating(true);
@@ -951,6 +1104,55 @@ function App() {
           </h2>
 
           <div className="form-group">
+            <label htmlFor="source-select">
+              성경 본문 출처
+              {bibleSource === BIBLE_SOURCES.GODPIA && (
+                <span className="label-badge">godpia.com 실시간 스크랩</span>
+              )}
+            </label>
+            <select
+              id="source-select"
+              className="form-select"
+              value={bibleSource}
+              onChange={(e) => {
+                const next = e.target.value;
+                setBibleSource(next);
+                if (next === BIBLE_SOURCES.GODPIA) {
+                  // 이전에 실패한 장은 다시 시도할 수 있도록 캐시에서 제거
+                  setGodpiaCache((prev) =>
+                    Object.fromEntries(Object.entries(prev).filter(([, entry]) => entry.status !== "error"))
+                  );
+                }
+              }}
+            >
+              <option value={BIBLE_SOURCES.LOCAL}>내장 성경 텍스트 (개역개정 · 빠름)</option>
+              <option value={BIBLE_SOURCES.GODPIA}>갓피아(godpia.com)에서 스크랩</option>
+            </select>
+          </div>
+
+          {bibleSource === BIBLE_SOURCES.GODPIA && (
+            <div className="form-group">
+              <label htmlFor="godpia-version-select">
+                번역본
+                {isGodpiaLoading && <span className="label-badge">불러오는 중...</span>}
+              </label>
+              <select
+                id="godpia-version-select"
+                className="form-select"
+                value={godpiaVersion}
+                onChange={(e) => setGodpiaVersion(e.target.value)}
+              >
+                {GODPIA_VERSIONS.map((v) => (
+                  <option key={v.code} value={v.code}>{v.name}</option>
+                ))}
+              </select>
+              <div style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: "1.4" }}>
+                ※ 입력한 구절을 갓피아 성경에서 실시간으로 가져옵니다. 본문 저작권은 각 번역본 저작권자 및 갓피아에 있습니다.
+              </div>
+            </div>
+          )}
+
+          <div className="form-group">
             <label htmlFor="ref-input">
               구절 입력
               <span className="label-badge">쉼표(,)로 다중 입력 가능</span>
@@ -1055,7 +1257,7 @@ function App() {
         <button
           className="btn-generate"
           onClick={generatePPTX}
-          disabled={isGenerating || previewList.length === 0}
+          disabled={isGenerating || isGodpiaLoading || previewList.length === 0}
         >
           {isGenerating ? (
             <>
