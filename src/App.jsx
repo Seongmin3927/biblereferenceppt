@@ -399,7 +399,7 @@ function DisqusComments({ pageId, pageUrl, pageTitle }) {
 }
 
 
-// 한글 단어 잘림 방지 (어절 단위 줄바꿈 유지: OpenXML DrawingML eaLnBrk="0" 및 wrap="square") 처리 헬퍼
+// 금칙 처리 유지(eaLnBrk="1") 및 한글 단어 잘림 허용 해제(어절 단위 개행: latinLnBrk="0", wrap="square") 처리 헬퍼
 function applyWordBreakRulesToSlideXml(slideXml) {
   try {
     const parser = new DOMParser();
@@ -407,7 +407,7 @@ function applyWordBreakRulesToSlideXml(slideXml) {
     const parseError = xmlDoc.getElementsByTagName("parsererror");
     if (parseError.length > 0) throw new Error("XML 파싱 실패");
 
-    // 모든 단락(<a:p>)에 eaLnBrk="0" 속성 부여 (한글 단어 잘림 허용 해제)
+    // 모든 단락(<a:p>)에 eaLnBrk="1"(금칙 처리 체크 유지) 및 latinLnBrk="0"(한글 단어 잘림 허용 해제) 속성 부여
     const paragraphs = xmlDoc.getElementsByTagName("a:p");
     for (let i = 0; i < paragraphs.length; i++) {
       const p = paragraphs[i];
@@ -416,7 +416,8 @@ function applyWordBreakRulesToSlideXml(slideXml) {
         pPr = xmlDoc.createElementNS("http://schemas.openxmlformats.org/drawingml/2006/main", "a:pPr");
         p.insertBefore(pPr, p.firstChild);
       }
-      pPr.setAttribute("eaLnBrk", "0");
+      pPr.setAttribute("eaLnBrk", "1");
+      pPr.setAttribute("latinLnBrk", "0");
     }
 
     // 모든 텍스트 바디(<a:bodyPr>)에 wrap="square" 활성화
@@ -431,12 +432,20 @@ function applyWordBreakRulesToSlideXml(slideXml) {
   } catch (err) {
     console.warn("DOMParser 처리 예외 발생, 정규식 폴백 적용:", err);
     let patched = slideXml.replace(/<a:pPr\b([^>]*)>/g, (match, attrs) => {
-      if (/eaLnBrk="[^"]*"/.test(attrs)) {
-        return `<a:pPr${attrs.replace(/eaLnBrk="[^"]*"/, 'eaLnBrk="0"')}>`;
+      let nextAttrs = attrs;
+      if (/eaLnBrk="[^"]*"/.test(nextAttrs)) {
+        nextAttrs = nextAttrs.replace(/eaLnBrk="[^"]*"/, 'eaLnBrk="1"');
+      } else {
+        nextAttrs += ' eaLnBrk="1"';
       }
-      return `<a:pPr${attrs} eaLnBrk="0">`;
+      if (/latinLnBrk="[^"]*"/.test(nextAttrs)) {
+        nextAttrs = nextAttrs.replace(/latinLnBrk="[^"]*"/, 'latinLnBrk="0"');
+      } else {
+        nextAttrs += ' latinLnBrk="0"';
+      }
+      return `<a:pPr${nextAttrs}>`;
     });
-    patched = patched.replace(/<a:p>(?!\s*<a:pPr)/g, '<a:p><a:pPr eaLnBrk="0"/>');
+    patched = patched.replace(/<a:p>(?!\s*<a:pPr)/g, '<a:p><a:pPr eaLnBrk="1" latinLnBrk="0"/>');
     return patched;
   }
 }
@@ -852,19 +861,20 @@ function App() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(slideXml, "application/xml");
             
-            // 모든 텍스트 단락 <a:p> 탐색 및 한글 단어 잘림 방지(eaLnBrk="0") 적용
+            // 모든 텍스트 단락 <a:p> 탐색 및 금칙 처리 유지(eaLnBrk="1"), 한글 단어 잘림 허용 해제(latinLnBrk="0") 적용
             const paragraphs = xmlDoc.getElementsByTagName("a:p");
             
             for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
               const p = paragraphs[pIdx];
 
-              // 한글 단어 잘림 허용 해제: eaLnBrk="0" 단락 속성 주입
+              // 금칙 처리 유지(eaLnBrk="1") 및 한글 단어 잘림 허용 해제(latinLnBrk="0") 단락 속성 주입
               let pPr = p.getElementsByTagName("a:pPr")[0];
               if (!pPr) {
                 pPr = xmlDoc.createElementNS("http://schemas.openxmlformats.org/drawingml/2006/main", "a:pPr");
                 p.insertBefore(pPr, p.firstChild);
               }
-              pPr.setAttribute("eaLnBrk", "0");
+              pPr.setAttribute("eaLnBrk", "1");
+              pPr.setAttribute("latinLnBrk", "0");
 
               const tElements = p.getElementsByTagName("a:t");
               if (tElements.length === 0) continue;
