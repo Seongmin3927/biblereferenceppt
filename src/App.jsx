@@ -450,6 +450,54 @@ function applyWordBreakRulesToSlideXml(slideXml) {
   }
 }
 
+// 공식 PowerPoint OpenXML MIME 타입
+const PPTX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+
+// 모바일(iOS Safari, Android Chrome 등) 및 데스크톱 환경에서 파일이 .zip 대신 .pptx 로 확실히 저장되도록 하는 다운로드 헬퍼
+async function triggerPPTXDownload(zipArchive, filename) {
+  // 1. JSZip에서 공식 PPTX MIME 타입을 명시하여 Blob 생성
+  const rawBlob = await zipArchive.generateAsync({
+    type: "blob",
+    mimeType: PPTX_MIME_TYPE,
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 }
+  });
+
+  // 2. 브라우저/모바일 OS가 확실히 인식하도록 명시적 MIME 타입으로 Blob 래핑
+  const pptxBlob = new Blob([rawBlob], { type: PPTX_MIME_TYPE });
+
+  // 3. 파일명에 .pptx 확장자가 정확히 들어가도록 보장
+  let cleanName = filename.trim();
+  if (!cleanName.toLowerCase().endsWith(".pptx")) {
+    cleanName += ".pptx";
+  }
+
+  // 4. 모바일 및 데스크톱 다운로드 트리거
+  const blobUrl = window.URL.createObjectURL(pptxBlob);
+  const link = document.createElement("a");
+  link.style.display = "none";
+  link.href = blobUrl;
+  link.setAttribute("download", cleanName);
+  link.download = cleanName;
+  link.rel = "noopener";
+  link.dataset.interception = "off";
+
+  document.body.appendChild(link);
+  link.click();
+
+  // 5. 모바일 브라우저(Safari, Android 등)에서 다운로드 핸드오프가 완료될 때까지 지연 후 메모리 정리
+  setTimeout(() => {
+    try {
+      window.URL.revokeObjectURL(blobUrl);
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, 3000);
+}
+
 function App() {
   const [bible, setBible] = useState(SAMPLE_BIBLE);
   const [userInput, setUserInput] = useState("시 23:1-6, 요 3:16");
@@ -821,7 +869,16 @@ function App() {
     showToast("파워포인트 슬라이드를 구성하고 있습니다...", "info");
 
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const outputName = (filename.trim() || today) + ".pptx";
+    let baseName = filename.trim() || today;
+    if (baseName.toLowerCase().endsWith(".pptx")) {
+      baseName = baseName.slice(0, -5);
+    }
+    const outputName = `${baseName}.pptx`;
+
+    // 카카오톡 등 인앱 브라우저에서 Blob 다운로드가 차단될 수 있으므로 안내
+    if (/kakaotalk/i.test(navigator.userAgent)) {
+      showToast("카카오톡 브라우저에서는 파일 다운로드가 차단될 수 있습니다. 문제 발생 시 우측 상단 메뉴(⋮)에서 [다른 브라우저로 열기]를 권장합니다.", "info");
+    }
 
     try {
       if (templateFile) {
@@ -966,16 +1023,9 @@ function App() {
         zip.file("ppt/_rels/presentation.xml.rels", presentationRelsXml);
         zip.file("[Content_Types].xml", contentTypesXml);
 
-        // ZIP 파일을 바이너리 블롭으로 압축 및 다운로드 트리거
-        const blob = await zip.generateAsync({ type: "blob" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = outputName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        showToast("업로드하신 PPT 양식으로 변환 다운로드가 완료되었습니다!", "success");
+        // PPTX 파일 다운로드 실행 (모바일/데스크톱 .pptx 확장자 및 MIME 보장)
+        await triggerPPTXDownload(zip, outputName);
+        showToast("성경인용 PPTX 파일 다운로드가 완료되었습니다!", "success");
       } else {
         // ==================================================
         // 템플릿 미업로드 시 -> 기존의 아름다운 프리미엄 테마로 새 슬라이드 생성 (PptxGenJS)
@@ -1041,14 +1091,8 @@ function App() {
           postZip.file(fname, patchedXml);
         }
 
-        const patchedBlob = await postZip.generateAsync({ type: "blob" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(patchedBlob);
-        link.download = outputName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
+        // PPTX 파일 다운로드 실행 (모바일/데스크톱 .pptx 확장자 및 MIME 보장)
+        await triggerPPTXDownload(postZip, outputName);
         showToast("기본 테마 PPTX 파일 다운로드가 완료되었습니다!", "success");
       }
     } catch (error) {
